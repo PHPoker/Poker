@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/PHPoker/Poker/main/docs/logo-with-text.png?token=GHSAT0AAAAAACOB5QXSOKI3HID4JDELOR3WZOTDEPA" height="300" alt="PHPoker">
+    <img src="https://raw.githubusercontent.com/PHPoker/Poker/refs/heads/main/docs/logo-with-text.png?token=GHSAT0AAAAAAC5BKWILOKNYOUUXL3VALO42Z6GWHLQ" height="300" alt="PHPoker">
     <p align="center">
         <a href="https://github.com/nunomaduro/skeleton-php/actions"><img alt="GitHub Workflow Status (master)" src="https://github.com/nunomaduro/skeleton-php/actions/workflows/tests.yml/badge.svg"></a>
         <a href="https://packagist.org/packages/nunomaduro/skeleton-php"><img alt="Total Downloads" src="https://img.shields.io/packagist/dt/nunomaduro/skeleton-php"></a>
