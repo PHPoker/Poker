@@ -9,7 +9,11 @@ use PHPoker\Poker\Enum\CardSuit;
 use PHPoker\Poker\Exceptions\CannotDetermineCardFace;
 use PHPoker\Poker\Exceptions\CannotDetermineCardSuit;
 
-class CardCollection extends Collection
+/**
+ * @extends Collection<int, Card>
+ */
+
+final class CardCollection extends Collection
 {
     /** @var array<int, Card> */
     protected $items = [];
@@ -31,11 +35,19 @@ class CardCollection extends Collection
     }
 
     /**
-     * @param  array  $items
+     * @param  array<int> $cards
+     */
+    public static function fromIntegers(array $cards): CardCollection
+    {
+        return self::make(array_map(fn (int $card) => Card::fromInteger($card), $cards))->unique()->values();
+    }
+
+    /**
+     * @param  array<int, Card>  $items
      */
     public static function make($items = []): static
     {
-        return new CardCollection($items);
+        return new static($items);
     }
 
     /**
@@ -54,6 +66,11 @@ class CardCollection extends Collection
         return $deck->shuffle();
     }
 
+    /**
+     * @param CardCollection|array<int, string|Card>|string $cards
+     * @throws CannotDetermineCardFace
+     * @throws CannotDetermineCardSuit
+     */
     public function discard(CardCollection|array|string $cards): CardCollection
     {
         if (is_string($cards) || is_array($cards)) {
@@ -73,6 +90,9 @@ class CardCollection extends Collection
         return $this->sortByDesc(fn (Card $card) => $card->face->value)->values();
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<int, CardFace>
+     */
     public function faces(): Collection
     {
         return collect($this->items)
@@ -86,6 +106,9 @@ class CardCollection extends Collection
         return $this->unique(fn (Card $card) => $card->toString());
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<int, CardSuit>
+     */
     public function suits(): Collection
     {
         return collect($this->items)
@@ -94,11 +117,17 @@ class CardCollection extends Collection
             ->values();
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<string, int>
+     */
     public function countSuits(): Collection
     {
         return collect($this->items)->map(fn (Card $card) => $card->suit)->countBy('name');
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<string, int>
+     */
     public function countFaces(): Collection
     {
         return collect($this->items)->map(fn (Card $card) => $card->face)->countBy('name');
@@ -106,14 +135,16 @@ class CardCollection extends Collection
 
     public function holding(CardFace|CardSuit|Card $cardCategory): bool
     {
-        $field = match (get_class($cardCategory)) {
-            CardFace::class => 'face',
-            CardSuit::class => 'suit',
-            default => null
-        };
+        if ($cardCategory instanceof CardFace) {
+            return $this->contains(fn (Card $card) => $cardCategory === $card->face);
+        }
+
+        if ($cardCategory instanceof CardSuit) {
+            return $this->contains(fn (Card $card) => $cardCategory === $card->suit);
+        }
 
         return $this->contains(
-            fn (Card $card) => $field ? $cardCategory === $card->$field : $card->face === $cardCategory->face && $card->suit === $cardCategory->suit
+            fn (Card $card) => $card->face === $cardCategory->face && $card->suit === $cardCategory->suit
         );
     }
 
@@ -136,7 +167,7 @@ class CardCollection extends Collection
 
     public function diffCards(CardCollection $madeHand): CardCollection
     {
-        return $this->filter(fn (Card $card) => ! $madeHand?->contains($card))->values()->sortByFaceValueDesc();
+        return $this->filter(fn (Card $card) => ! $madeHand->contains($card))->values()->sortByFaceValueDesc();
     }
 
     public function toString(string $separator = ' '): string

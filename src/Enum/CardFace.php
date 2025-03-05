@@ -84,6 +84,10 @@ enum CardFace: int
         return self::fromInteger(($cardValue >> 8) & 0xF);
     }
 
+
+    /**
+     * @return string[]
+     */
     public static function symbols(): array
     {
         return ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
@@ -147,7 +151,7 @@ enum CardFace: int
         };
     }
 
-    public function faceValue(bool $low = false)
+    public function faceValue(bool $low = false) : int
     {
         return match ($this) {
             self::TWO => 2,
@@ -169,7 +173,12 @@ enum CardFace: int
     public function plus(int $howMany): self
     {
         $currentFaceIndex = array_search($this->symbol(), self::symbols(), true);
-        $newFaceIndex = ($currentFaceIndex + $howMany) % count(self::symbols());
+
+        if ($currentFaceIndex === false) {
+            throw new \RuntimeException("Symbol {$this->symbol()} not found in symbols array");
+        }
+
+        $newFaceIndex = ((int) $currentFaceIndex + $howMany) % count(self::symbols());
 
         return self::fromText(self::symbols()[$newFaceIndex]);
     }
