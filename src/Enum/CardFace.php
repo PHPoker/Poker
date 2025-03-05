@@ -84,7 +84,6 @@ enum CardFace: int
         return self::fromInteger(($cardValue >> 8) & 0xF);
     }
 
-
     /**
      * @return string[]
      */
@@ -151,7 +150,7 @@ enum CardFace: int
         };
     }
 
-    public function faceValue(bool $low = false) : int
+    public function faceValue(bool $low = false): int
     {
         return match ($this) {
             self::TWO => 2,

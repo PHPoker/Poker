@@ -10,8 +10,7 @@ class InvalidNumberOfCardsInHand extends \Exception
     protected array $hand;
 
     /**
-     * @param  int[] $hand
-     * @param  \Exception|null  $previousException
+     * @param  int[]  $hand
      */
     public function __construct(array $hand, ?\Exception $previousException = null)
     {

@@ -12,7 +12,6 @@ use PHPoker\Poker\Exceptions\CannotDetermineCardSuit;
 /**
  * @extends Collection<int, Card>
  */
-
 final class CardCollection extends Collection
 {
     /** @var array<int, Card> */
@@ -35,7 +34,7 @@ final class CardCollection extends Collection
     }
 
     /**
-     * @param  array<int> $cards
+     * @param  array<int>  $cards
      */
     public static function fromIntegers(array $cards): CardCollection
     {
@@ -47,7 +46,7 @@ final class CardCollection extends Collection
      */
     public static function make($items = []): static
     {
-        return new static($items);
+        return new self($items);
     }
 
     /**
@@ -67,7 +66,8 @@ final class CardCollection extends Collection
     }
 
     /**
-     * @param CardCollection|array<int, string|Card>|string $cards
+     * @param  CardCollection|array<int, string|Card>|string  $cards
+     *
      * @throws CannotDetermineCardFace
      * @throws CannotDetermineCardSuit
      */
