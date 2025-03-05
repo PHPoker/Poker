@@ -14,7 +14,9 @@ class Card implements \JsonSerializable
     public function __construct(
         public CardFace $face,
         public CardSuit $suit,
-    ) {}
+    ) {
+        // inconsistent results in Laravel pint force this comment
+    }
 
     public static function make(CardFace $face, CardSuit $suit): self
     {
