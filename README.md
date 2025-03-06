@@ -1,10 +1,11 @@
 <p align="center">
     <img src="https://raw.githubusercontent.com/PHPoker/Poker/refs/heads/main/docs/logo-with-text.png" height="300" alt="PHPoker">
     <p align="center">
-        <a href="https://github.com/nunomaduro/skeleton-php/actions"><img alt="GitHub Workflow Status (master)" src="https://github.com/nunomaduro/skeleton-php/actions/workflows/tests.yml/badge.svg"></a>
-        <a href="https://packagist.org/packages/nunomaduro/skeleton-php"><img alt="Total Downloads" src="https://img.shields.io/packagist/dt/nunomaduro/skeleton-php"></a>
-        <a href="https://packagist.org/packages/nunomaduro/skeleton-php"><img alt="Latest Version" src="https://img.shields.io/packagist/v/nunomaduro/skeleton-php"></a>
-        <a href="https://packagist.org/packages/nunomaduro/skeleton-php"><img alt="License" src="https://img.shields.io/packagist/l/nunomaduro/skeleton-php"></a>
+        <a href="https://github.com/PHPoker/Poker/actions"><img alt="GitHub Workflow Status (master)" src="https://github.com/PHPoker/Poker/actions/workflows/tests.yml/badge.svg"></a>
+        <a href="https://packagist.org/packages/PHPoker/poker"><img alt="Total Downloads" src="https://img.shields.io/packagist/dt/PHPoker/poker"></a>
+        <a href="https://packagist.org/packages/PHPoker/poker"><img alt="Latest Version" src="https://img.shields.io/packagist/v/PHPoker/poker"></a>
+        <a href="https://packagist.org/packages/PHPoker/poker"><img alt="License" src="https://img.shields.io/github/license/PHPoker/poker
+"></a>
     </p>
 </p>
 
@@ -207,8 +208,66 @@ $hasHearts = $hand->holding(CardSuit::HEART);     // Check for hearts
 $hasAceOfSpades = $hand->holding(Card::fromText('As')); // Check for specific card
 ```
 
-#### Collection Analysis
+### Collection Hand Evaluation
 
+The library includes a powerful hand evaluation engine based on Kevin "CactusKev" Suffecool's algorithm with perfect-hash improvements by Paul Senzee. This provides fast and accurate poker hand evaluation.
+
+#### Evaluating a Hand
+
+```php
+use PHPoker\Poker\Collections\CardCollection;
+
+// Create a hand from text notation
+$royalFlush = CardCollection::fromText('Ah Kh Qh Jh Th');
+$fourOfAKind = CardCollection::fromText('Ah Ad As Ac Kh');
+$twoPair = CardCollection::fromText('Ah Ad Kh Ks Qc');
+$highCard = CardCollection::fromText('Ah Kd Qs Jc 9h');
+
+// Get the hand rank as an enum
+$handRank = $royalFlush->evaluate();
+echo $handRank->name; // "STRAIGHT_FLUSH" (Royal Flush is a type of Straight Flush)
+
+$handRank = $fourOfAKind->evaluate();
+echo $handRank->name; // "FOUR_OF_A_KIND"
+
+$handRank = $twoPair->evaluate();
+echo $handRank->name; // "TWO_PAIR"
+
+$handRank = $highCard->evaluate();
+echo $handRank->name; // "HIGH_CARD"
+```
+
+#### Comparing Hands
+```php
+// Create two hands to compare
+$royalFlush = CardCollection::fromText('Ah Kh Qh Jh Th');
+$fourOfAKind = CardCollection::fromText('Ah Ad As Ac Kh');
+
+// Get numerical ranks for each hand
+$royalFlushRank = $royalFlush->rankHand();
+$fourOfAKindRank = $fourOfAKind->rankHand();
+
+// Compare the ranks (lower is better)
+if ($royalFlushRank < $fourOfAKindRank) {
+    echo "Royal Flush wins!";
+} else {
+    echo "Four of a Kind wins!";
+}
+// Output: "Royal Flush wins!"
+
+// Another comparison
+$fullHouse = CardCollection::fromText('Ah As Ad Kh Ks');
+$flush = CardCollection::fromText('Ah Jh 8h 6h 2h');
+
+if ($fullHouse->rankHand() < $flush->rankHand()) {
+    echo "Full House wins!";
+} else {
+    echo "Flush wins!";
+}
+// Output: "Full House wins!"
+```
+
+#### Collection Analysis
 ```php
 // Get collection of unique faces
 $uniqueFaces = $hand->faces();
