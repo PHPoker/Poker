@@ -4,8 +4,7 @@
         <a href="https://github.com/PHPoker/Poker/actions"><img alt="GitHub Workflow Status (master)" src="https://github.com/PHPoker/Poker/actions/workflows/tests.yml/badge.svg"></a>
         <a href="https://packagist.org/packages/PHPoker/poker"><img alt="Total Downloads" src="https://img.shields.io/packagist/dt/PHPoker/poker"></a>
         <a href="https://packagist.org/packages/PHPoker/poker"><img alt="Latest Version" src="https://img.shields.io/packagist/v/PHPoker/poker"></a>
-        <a href="https://packagist.org/packages/PHPoker/poker"><img alt="License" src="https://img.shields.io/github/license/PHPoker/poker
-"></a>
+        <a href="https://packagist.org/packages/PHPoker/poker"><img alt="License" src="https://img.shields.io/github/license/PHPoker/poker"></a>
     </p>
 </p>
 
