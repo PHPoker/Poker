@@ -5,6 +5,7 @@ use PHPoker\Poker\Card;
 use PHPoker\Poker\Collections\CardCollection;
 use PHPoker\Poker\Enum\CardFace;
 use PHPoker\Poker\Enum\CardSuit;
+use PHPoker\Poker\Enum\HandRank;
 
 test('CardCollection can be created with make method', function () {
     $collection = CardCollection::make([
@@ -384,10 +385,8 @@ test('CardCollection toIntegers converts cards to integer values correctly', fun
 ) {
     $result = $collection->toIntegers();
 
-    // Verify it returns a CardCollection
-    expect($result)->toBeInstanceOf(CardCollection::class);
+    expect($result)->toBeInstanceOf(Collection::class);
 
-    // For the full deck test case (with shuffling)
     if ($expectedIntegers === null) {
         // The collection should still have the same count
         expect($result)->toHaveCount($collection->count());
@@ -457,3 +456,52 @@ test('CardCollection toIntegers produces valid card integer values', function ()
         expect($card->suit)->toBeInstanceOf(CardSuit::class);
     }
 });
+
+// Test for evaluateHandRank method
+test('CardCollection evaluateHandRank returns correct hand rank', function (
+    CardCollection $hand,
+    HandRank $expectedRank
+) {
+    $handRank = $hand->evaluateHandRank();
+    expect($handRank)->toBe($expectedRank);
+})->with('hand_evaluations');
+
+// Test for rankHand method
+test('CardCollection rankHand returns integer value that preserves hand rank order', function (
+    CardCollection $betterHand,
+    CardCollection $worseHand,
+    bool $firstIsBetter
+) {
+    $betterRank = $betterHand->rankHand();
+    $worseRank = $worseHand->rankHand();
+
+    if ($firstIsBetter) {
+        expect($betterRank)->toBeLessThan($worseRank);
+    } else {
+        expect($betterRank)->toBeGreaterThan($worseRank);
+    }
+})->with('hand_rankings');
+
+// Test for fromIntegers method
+test('CardCollection fromIntegers correctly converts integer values to cards', function (
+    array $integers,
+    CardCollection $expected
+) {
+    $collection = CardCollection::fromIntegers($integers);
+
+    expect($collection)->toHaveCount($expected->count());
+
+    // If empty result, just verify it's empty
+    if ($expected->isEmpty()) {
+        expect($collection)->toBeEmpty();
+
+        return;
+    }
+
+    // Test each card
+    foreach ($collection as $index => $card) {
+        expect($card->isEqualTo($expected[$index]))->toBeTrue(
+            "Card at index {$index} doesn't match expected: got {$card->toString()}, expected {$expected[$index]->toString()}"
+        );
+    }
+})->with('card_integers_for_collection');

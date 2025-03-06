@@ -5,6 +5,7 @@ use PHPoker\Poker\Card;
 use PHPoker\Poker\Collections\CardCollection;
 use PHPoker\Poker\Enum\CardFace;
 use PHPoker\Poker\Enum\CardSuit;
+use PHPoker\Poker\Enum\HandRank;
 
 /**
  * Dataset for CardCollection tests
@@ -592,5 +593,148 @@ dataset('card_collections_for_integers', [
         CardCollection::createDeck(),
         // Expected: will check dynamically in the test due to shuffling
         null,
+    ],
+]);
+
+// Dataset for testing hand evaluation
+dataset('hand_evaluations', [
+    'Royal Flush' => [
+        // Input hand
+        CardCollection::fromText('Ah Kh Qh Jh Th'),
+        // Expected hand rank enum
+        HandRank::STRAIGHT_FLUSH,
+    ],
+    'Straight Flush' => [
+        CardCollection::fromText('9s 8s 7s 6s 5s'),
+        HandRank::STRAIGHT_FLUSH,
+    ],
+    'Four of a Kind' => [
+        CardCollection::fromText('Ah Ad As Ac Kh'),
+        HandRank::FOUR_OF_A_KIND,
+    ],
+    'Full House' => [
+        CardCollection::fromText('Ah Ad As Kc Kh'),
+        HandRank::FULL_HOUSE,
+    ],
+    'Flush' => [
+        CardCollection::fromText('Ah 3h 5h 7h 9h'),
+        HandRank::FLUSH,
+    ],
+    'Straight' => [
+        CardCollection::fromText('9s 8h 7d 6c 5s'),
+        HandRank::STRAIGHT,
+    ],
+    'Three of a Kind' => [
+        CardCollection::fromText('Ah Ad As Kc Qh'),
+        HandRank::THREE_OF_A_KIND,
+    ],
+    'Two Pair' => [
+        CardCollection::fromText('Ah Ad Kc Kh Qd'),
+        HandRank::TWO_PAIR,
+    ],
+    'One Pair' => [
+        CardCollection::fromText('Ah Ad Kc Qh Jd'),
+        HandRank::ONE_PAIR,
+    ],
+    'High Card' => [
+        CardCollection::fromText('Ah Kd Qc Jh 9d'),
+        HandRank::HIGH_CARD,
+    ],
+]);
+
+// Dataset for testing hand ranking
+dataset('hand_rankings', [
+    'Royal Flush vs Straight Flush' => [
+        CardCollection::fromText('Ah Kh Qh Jh Th'), // Royal flush
+        CardCollection::fromText('9s 8s 7s 6s 5s'), // Straight flush
+        true, // first hand is better
+    ],
+    'Straight Flush vs Four of a Kind' => [
+        CardCollection::fromText('9s 8s 7s 6s 5s'), // Straight flush
+        CardCollection::fromText('Ah Ad As Ac Kh'), // Four of a kind
+        true, // first hand is better
+    ],
+    'Four of a Kind vs Full House' => [
+        CardCollection::fromText('Ah Ad As Ac Kh'), // Four of a kind
+        CardCollection::fromText('Ah Ad As Kc Kh'), // Full house
+        true, // first hand is better
+    ],
+    'Full House vs Flush' => [
+        CardCollection::fromText('Ah Ad As Kc Kh'), // Full house
+        CardCollection::fromText('Ah 3h 5h 7h 9h'), // Flush
+        true, // first hand is better
+    ],
+    'Flush vs Straight' => [
+        CardCollection::fromText('Ah 3h 5h 7h 9h'), // Flush
+        CardCollection::fromText('9s 8h 7d 6c 5s'), // Straight
+        true, // first hand is better
+    ],
+    'Straight vs Three of a Kind' => [
+        CardCollection::fromText('9s 8h 7d 6c 5s'), // Straight
+        CardCollection::fromText('Ah Ad As Kc Qh'), // Three of a kind
+        true, // first hand is better
+    ],
+    'Three of a Kind vs Two Pair' => [
+        CardCollection::fromText('Ah Ad As Kc Qh'), // Three of a kind
+        CardCollection::fromText('Ah Ad Kc Kh Qd'), // Two pair
+        true, // first hand is better
+    ],
+    'Two Pair vs One Pair' => [
+        CardCollection::fromText('Ah Ad Kc Kh Qd'), // Two pair
+        CardCollection::fromText('Ah Ad Kc Qh Jd'), // One pair
+        true, // first hand is better
+    ],
+    'One Pair vs High Card' => [
+        CardCollection::fromText('Ah Ad Kc Qh Jd'), // One pair
+        CardCollection::fromText('Ah Kd Qc Jh 9d'), // High card
+        true, // first hand is better
+    ],
+    'Same Hand Type - Higher Four of a Kind' => [
+        CardCollection::fromText('Ah Ad As Ac Qh'), // Four aces
+        CardCollection::fromText('Kh Kd Ks Kc Ah'), // Four kings
+        true, // first hand is better
+    ],
+    'Same Hand Type - Higher Full House' => [
+        CardCollection::fromText('Ah Ad As Kc Kh'), // Full house (Aces full of Kings)
+        CardCollection::fromText('Kh Kd Ks Ac Ah'), // Full house (Kings full of Aces)
+        true, // first hand is better
+    ],
+]);
+
+// Dataset for testing fromIntegers method
+dataset('card_integers_for_collection', [
+    'Single card' => [
+        // Input integers
+        [Card::fromText('Ac')->toInteger()],
+        // Expected collection
+        CardCollection::fromText('Ac'),
+    ],
+    'Multiple cards' => [
+        // Input integers
+        [
+            Card::fromText('Ac')->toInteger(),
+            Card::fromText('Kd')->toInteger(),
+            Card::fromText('Qh')->toInteger(),
+        ],
+        // Expected collection
+        CardCollection::fromText('Ac Kd Qh'),
+    ],
+    'Royal flush' => [
+        // Input integers
+        [
+            Card::fromText('Ah')->toInteger(),
+            Card::fromText('Kh')->toInteger(),
+            Card::fromText('Qh')->toInteger(),
+            Card::fromText('Jh')->toInteger(),
+            Card::fromText('Th')->toInteger(),
+        ],
+        // Expected collection
+        CardCollection::fromText('Ah Kh Qh Jh Th'),
+    ],
+    'Empty array' => [
+        // Input (empty array)
+        [],
+        // Expected (empty collection)
+        CardCollection::make(),
     ],
 ]);
