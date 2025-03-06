@@ -6,6 +6,8 @@ use Illuminate\Support\Collection;
 use PHPoker\Poker\Card;
 use PHPoker\Poker\Enum\CardFace;
 use PHPoker\Poker\Enum\CardSuit;
+use PHPoker\Poker\Enum\HandRank;
+use PHPoker\Poker\Evaluate\Evaluator;
 use PHPoker\Poker\Exceptions\CannotDetermineCardFace;
 use PHPoker\Poker\Exceptions\CannotDetermineCardSuit;
 
@@ -47,6 +49,16 @@ final class CardCollection extends Collection
     public static function make($items = []): static
     {
         return new self($items);
+    }
+
+    public function evaluateHandRank(): HandRank
+    {
+        return Evaluator::evaluateHand($this->toIntegers()->all());
+    }
+
+    public function rankHand(): int
+    {
+        return Evaluator::rankHand($this->toIntegers()->all());
     }
 
     /**
@@ -175,9 +187,12 @@ final class CardCollection extends Collection
         return $this->map(fn (Card $card) => $card->toString())->implode(value: $separator);
     }
 
-    public function toIntegers(): CardCollection
+    /**
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public function toIntegers(): Collection
     {
-        return $this->map(fn (Card $card) => $card->toInteger());
+        return collect($this->items)->map(fn (Card $card): int => $card->toInteger());
     }
 
     public function toHtml(string $separator = ' '): string
