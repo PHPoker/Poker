@@ -73,6 +73,11 @@ class Card implements \JsonSerializable
         return $this->face->symbol().($useSuitSymbols ? $this->suit->symbol() : $this->suit->text());
     }
 
+    public function toUnicodeString(): string
+    {
+        return $this->toString(true);
+    }
+
     public static function random(): self
     {
         return new self(
