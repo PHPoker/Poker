@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPoker\Poker\Evaluate;
 
 use PHPoker\Poker\Enum\HandRank;

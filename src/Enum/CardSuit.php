@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPoker\Poker\Enum;
 
 use ArchTech\Enums\InvokableCases;
@@ -23,13 +25,13 @@ enum CardSuit: int
 
     case SPADE = 0x1000;
 
-    const CLUB_BIT_MASK_VALUE = 8;
+    public const CLUB_BIT_MASK_VALUE = 8;
 
-    const DIAMOND_BIT_MASK_VALUE = 4;
+    public const DIAMOND_BIT_MASK_VALUE = 4;
 
-    const HEART_BIT_MASK_VALUE = 2;
+    public const HEART_BIT_MASK_VALUE = 2;
 
-    const SPADE_BIT_MASK_VALUE = 1;
+    public const SPADE_BIT_MASK_VALUE = 1;
 
     /**
      * @throws CannotDetermineCardSuit

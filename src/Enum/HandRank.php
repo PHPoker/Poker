@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPoker\Poker\Enum;
 
 use ArchTech\Enums\InvokableCases;

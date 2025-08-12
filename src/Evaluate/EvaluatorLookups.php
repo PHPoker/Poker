@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPoker\Poker\Evaluate;
 
-class EvaluatorLookups
+final class EvaluatorLookups
 {
     /**
      * Contains lookup values for Flushes
      */
-    public const FLUSH_HAND_LOOKUP = [
+    final public const FLUSH_HAND_LOOKUP = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 1599, 0, 0, 0, 0, 0, 0, 0, 1598, 0, 0, 0, 1597, 0, 1596,
@@ -427,7 +429,7 @@ class EvaluatorLookups
     /**
      * Contains lookup values for Straights OR High-Card hands
      */
-    public const HANDS_WITH_UNIOUE_FACES = [
+    final public const HANDS_WITH_UNIOUE_FACES = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 1608, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 7462, 0, 0, 0, 0, 0, 0, 0, 7461, 0, 0,  0,  7460,  0,
@@ -855,7 +857,7 @@ class EvaluatorLookups
     /**
      * Contains lookup values for any remaining hand types (Pair, 2-Pair, 3-of-a-kind, 4-of-a-kind, Full House)
      */
-    public const REMAINING_HAND_LOOKUP = [
+    final public const REMAINING_HAND_LOOKUP = [
         148, 2934,  166, 5107, 4628,  166,  166,  166,  166, 3033,  166, 4692,  166, 5571, 2225,  166,
         5340, 3423,  166, 3191, 1752,  166, 5212,  166,  166, 3520,  166,  166,  166, 1867,  166, 3313,
         166, 3461,  166,  166, 3174, 1737, 5010, 5008,  166, 4344, 2868, 3877,  166, 4089,  166, 5041,
@@ -1373,7 +1375,7 @@ class EvaluatorLookups
     /**
      * Contains optimized hash map look up values for remaining hand types
      */
-    public const PERFECT_HASH_LOOKUP = [
+    final public const PERFECT_HASH_LOOKUP = [
         0, 5628, 7017, 1298, 2918, 2442, 8070, 6383, 6383, 7425, 2442, 5628, 8044, 7425, 3155, 6383,
         2918, 7452, 1533, 6849, 5586, 7452, 7452, 1533, 2209, 6029, 2794, 3509, 7992, 7733, 7452, 131,
         6029, 4491, 1814, 7452, 6110, 3155, 7077, 6675, 532, 1334, 7555, 5325, 3056, 1403, 1403, 3969,
@@ -1411,7 +1413,7 @@ class EvaluatorLookups
     /**
      * Contains all the possible 5 card permutations of 7 cards
      */
-    public const SEVEN_HAND_PERMUTATIONS = [
+    final public const SEVEN_HAND_PERMUTATIONS = [
         [0, 1, 2, 3, 4],
         [0, 1, 2, 3, 5],
         [0, 1, 2, 3, 6],
