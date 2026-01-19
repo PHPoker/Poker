@@ -73,7 +73,7 @@ enum CardFace: int
     {
         try {
             return self::from($faceValue);
-        } catch (\Error $e) {
+        } catch (\Error) {
             throw new CannotDetermineCardFace($faceValue);
         }
     }

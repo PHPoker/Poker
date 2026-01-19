@@ -19,7 +19,7 @@
         "laravel/pint": "^1.13.7",
         "pestphp/pest": "^2.28.1",
         "phpstan/phpstan": "^1.10.50",
-        "rector/rector": "^0.18.13",
+        "rector/rector": "^1.2",
         "symfony/var-dumper": "^6.4.0|^7.0.0"
     },
     "autoload": {
@@ -46,7 +46,7 @@
         "lint": "pint",
         "test:refacto": "rector --dry-run",
         "test:lint": "pint --test",
-        "test:types": "phpstan analyse --ansi",
+        "test:types": "phpstan analyse --ansi --memory-limit=512M",
         "test:unit": "pest --colors=always",
         "test": [
             "@test:refacto",

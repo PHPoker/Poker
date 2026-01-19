@@ -27,22 +27,22 @@ final class CardCollection extends Collection
      * @throws CannotDetermineCardFace
      * @throws CannotDetermineCardSuit
      */
-    public static function fromText(array|string $cards): CardCollection
+    public static function fromText(array|string $cards): self
     {
         if (is_string($cards)) {
             preg_match_all('/[AaKkQqJjTt98765432]{1}[Cc♣Dd♦Hh♥Ss♠]{1}(?=[ ,])*/u', $cards, $matches);
             $cards = $matches[0];
         }
 
-        return self::make(array_map(fn (Card|string $card) => is_string($card) ? Card::fromText($card) : $card, $cards))->unique()->values();
+        return self::make(array_map(static fn (Card|string $card): Card => is_string($card) ? Card::fromText($card) : $card, $cards))->unique()->values();
     }
 
     /**
      * @param  array<int>  $cards
      */
-    public static function fromIntegers(array $cards): CardCollection
+    public static function fromIntegers(array $cards): self
     {
-        return self::make(array_map(fn (int $card) => Card::fromInteger($card), $cards))->unique()->values();
+        return self::make(array_map(static fn (int $card): Card => Card::fromInteger($card), $cards))->unique()->values();
     }
 
     /**
@@ -66,12 +66,12 @@ final class CardCollection extends Collection
     /**
      * @throws \Exception
      */
-    public static function createDeck(): CardCollection
+    public static function createDeck(): self
     {
-        $deck = CardCollection::make();
+        $deck = self::make();
 
-        collect(CardSuit::cases())->each(function (CardSuit $suit) use (&$deck) {
-            collect(CardFace::cases())->each(function (CardFace $face) use (&$deck, $suit) {
+        collect(CardSuit::cases())->each(function (CardSuit $suit) use (&$deck): void {
+            collect(CardFace::cases())->each(function (CardFace $face) use (&$deck, $suit): void {
                 $deck->push(new Card(face: $face, suit: $suit));
             });
         });
@@ -85,23 +85,23 @@ final class CardCollection extends Collection
      * @throws CannotDetermineCardFace
      * @throws CannotDetermineCardSuit
      */
-    public function discard(CardCollection|array|string $cards): CardCollection
+    public function discard(self|array|string $cards): self
     {
         if (is_string($cards) || is_array($cards)) {
-            $cards = CardCollection::fromText($cards);
+            $cards = self::fromText($cards);
         }
 
-        return $this->filter(fn (Card $card) => $cards->holding($card) === false)->values();
+        return $this->filter(fn (Card $card): bool => $cards->holding($card) === false)->values();
     }
 
-    public function sortByFaceValue(): CardCollection
+    public function sortByFaceValue(): self
     {
-        return $this->sortBy(fn (Card $card) => $card->face->value)->values();
+        return $this->sortBy(fn (Card $card): int => $card->face->value)->values();
     }
 
-    public function sortByFaceValueDesc(): CardCollection
+    public function sortByFaceValueDesc(): self
     {
-        return $this->sortByDesc(fn (Card $card) => $card->face->value)->values();
+        return $this->sortByDesc(fn (Card $card): int => $card->face->value)->values();
     }
 
     /**
@@ -110,14 +110,14 @@ final class CardCollection extends Collection
     public function faces(): Collection
     {
         return collect($this->items)
-            ->map(fn (Card $card) => $card->face)
+            ->map(fn (Card $card): CardFace => $card->face)
             ->unique()
             ->values();
     }
 
-    public function uniqueCards(): CardCollection
+    public function uniqueCards(): self
     {
-        return $this->unique(fn (Card $card) => $card->toString());
+        return $this->unique(fn (Card $card): string => $card->toString());
     }
 
     /**
@@ -126,7 +126,7 @@ final class CardCollection extends Collection
     public function suits(): Collection
     {
         return collect($this->items)
-            ->map(fn (Card $card) => $card->suit)
+            ->map(fn (Card $card): CardSuit => $card->suit)
             ->unique()
             ->values();
     }
@@ -136,7 +136,7 @@ final class CardCollection extends Collection
      */
     public function countSuits(): Collection
     {
-        return collect($this->items)->map(fn (Card $card) => $card->suit)->countBy('name');
+        return collect($this->items)->map(fn (Card $card): CardSuit => $card->suit)->countBy('name');
     }
 
     /**
@@ -144,49 +144,49 @@ final class CardCollection extends Collection
      */
     public function countFaces(): Collection
     {
-        return collect($this->items)->map(fn (Card $card) => $card->face)->countBy('name');
+        return collect($this->items)->map(fn (Card $card): CardFace => $card->face)->countBy('name');
     }
 
     public function holding(CardFace|CardSuit|Card $cardCategory): bool
     {
         if ($cardCategory instanceof CardFace) {
-            return $this->contains(fn (Card $card) => $cardCategory === $card->face);
+            return $this->contains(fn (Card $card): bool => $cardCategory === $card->face);
         }
 
         if ($cardCategory instanceof CardSuit) {
-            return $this->contains(fn (Card $card) => $cardCategory === $card->suit);
+            return $this->contains(fn (Card $card): bool => $cardCategory === $card->suit);
         }
 
         return $this->contains(
-            fn (Card $card) => $card->face === $cardCategory->face && $card->suit === $cardCategory->suit
+            fn (Card $card): bool => $card->face === $cardCategory->face && $card->suit === $cardCategory->suit
         );
     }
 
-    public function ofSuit(CardSuit $suit): CardCollection
+    public function ofSuit(CardSuit $suit): self
     {
         return $this->fetch($suit);
     }
 
-    public function ofFace(CardFace $face): CardCollection
+    public function ofFace(CardFace $face): self
     {
         return $this->fetch($face);
     }
 
-    public function fetch(CardFace|CardSuit $cardCategory): CardCollection
+    public function fetch(CardFace|CardSuit $cardCategory): self
     {
         $field = $cardCategory instanceof CardFace ? 'face' : 'suit';
 
-        return $this->filter(fn (Card $card) => $cardCategory === $card->$field);
+        return $this->filter(fn (Card $card): bool => $cardCategory === $card->$field);
     }
 
-    public function diffCards(CardCollection $madeHand): CardCollection
+    public function diffCards(self $madeHand): self
     {
-        return $this->filter(fn (Card $card) => ! $madeHand->contains($card))->values()->sortByFaceValueDesc();
+        return $this->filter(fn (Card $card): bool => ! $madeHand->contains($card))->values()->sortByFaceValueDesc();
     }
 
     public function toString(string $separator = ' '): string
     {
-        return $this->map(fn (Card $card) => $card->toString())->implode(value: $separator);
+        return $this->map(fn (Card $card): string => $card->toString())->implode(value: $separator);
     }
 
     /**
@@ -199,6 +199,6 @@ final class CardCollection extends Collection
 
     public function toHtml(string $separator = ' '): string
     {
-        return $this->map(fn (Card $card) => $card->toHtml())->implode(value: $separator);
+        return $this->map(fn (Card $card): string => $card->toHtml())->implode(value: $separator);
     }
 }
