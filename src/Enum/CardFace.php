@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPoker\Poker\Enum;
 
 use ArchTech\Enums\InvokableCases;
@@ -71,7 +73,7 @@ enum CardFace: int
     {
         try {
             return self::from($faceValue);
-        } catch (\Error $e) {
+        } catch (\Error) {
             throw new CannotDetermineCardFace($faceValue);
         }
     }
