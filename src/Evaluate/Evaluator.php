@@ -55,7 +55,7 @@ class Evaluator
         $q = ($card1 | $card2 | $card3 | $card4 | $card5) >> 16;
 
         // This checks for Flushes and Straight Flushes
-        if ($card1 & $card2 & $card3 & $card4 & $card5 & 0xF000) {
+        if (($card1 & $card2 & $card3 & $card4 & $card5 & 0xF000) !== 0) {
             return EvaluatorLookups::FLUSH_HAND_LOOKUP[$q];
         }
 
