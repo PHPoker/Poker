@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPoker\Poker\Evaluate;
 
+use PHPoker\Poker\Card;
 use PHPoker\Poker\Enum\HandRank;
 use PHPoker\Poker\Exceptions\InvalidNumberOfCardsInHand;
 
@@ -15,13 +16,15 @@ use PHPoker\Poker\Exceptions\InvalidNumberOfCardsInHand;
  * perfectHash lookup. To get around this, I had to use some extra bitwise operations to simulate the way
  * C overflows 32-bit unsigned integers within PHP.
  *
- * For more information how this algorithm works under the hood, please visit:
+ * For more information on how this algorithm works under the hood, please visit:
  *
  * http://suffe.cool/poker/evaluator.html
  * https://senzee.blogspot.com/2006/06/some-perfect-hash.html
  */
 class Evaluator
 {
+    private static ?bool $extensionAvailable = null;
+
     /**
      * @param  array<int>  $hand
      *
@@ -29,11 +32,25 @@ class Evaluator
      */
     public static function evaluateHand(array $hand): HandRank
     {
-        return HandRank::evaluate(match (count($hand)) {
-            5 => self::rankFiveCards(...$hand),
-            7 => self::rankSevenCards($hand),
-            default => throw new InvalidNumberOfCardsInHand($hand)
-        });
+        $count = count($hand);
+
+        if ($count !== 5 && $count !== 7) {
+            throw new InvalidNumberOfCardsInHand($hand);
+        }
+
+        if (self::extensionAvailable()) {
+            $value = self::normalizeExtensionHandValue(
+                poker_evaluate_hand(self::integersToCardString($hand))
+            );
+
+            if ($value !== null) {
+                return HandRank::evaluate($value);
+            }
+        }
+
+        return HandRank::evaluate($count === 5
+            ? self::rankFiveCards(...$hand)
+            : self::rankSevenCards($hand));
     }
 
     /**
@@ -43,11 +60,25 @@ class Evaluator
      */
     public static function rankHand(array $hand): int
     {
-        return match (count($hand)) {
-            5 => self::rankFiveCards(...$hand),
-            7 => self::rankSevenCards($hand),
-            default => throw new InvalidNumberOfCardsInHand($hand)
-        };
+        $count = count($hand);
+
+        if ($count !== 5 && $count !== 7) {
+            throw new InvalidNumberOfCardsInHand($hand);
+        }
+
+        if (self::extensionAvailable()) {
+            $value = self::normalizeExtensionHandValue(
+                poker_evaluate_hand(self::integersToCardString($hand))
+            );
+
+            if ($value !== null) {
+                return $value;
+            }
+        }
+
+        return $count === 5
+            ? self::rankFiveCards(...$hand)
+            : self::rankSevenCards($hand);
     }
 
     public static function rankFiveCards(int $card1, int $card2, int $card3, int $card4, int $card5): int
@@ -108,5 +139,61 @@ class Evaluator
         $a = (($u + ($u << 2)) % 0x100000000) >> 19;
 
         return $a ^ EvaluatorLookups::PERFECT_HASH_LOOKUP[$b];
+    }
+
+    /**
+     * @param  array<int>  $hand
+     * @return array<string>
+     */
+    private static function integersToCardStrings(array $hand): array
+    {
+        return array_map(
+            static fn (int $card): string => Card::fromInteger($card)->toString(),
+            $hand
+        );
+    }
+
+    private static function normalizeExtensionHandValue(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_float($value) || (is_string($value) && is_numeric($value))) {
+            return (int) $value;
+        }
+
+        if (is_array($value)) {
+            $keys = ['value', 'handValue', 'hand_value', 'rank', 'hand_rank'];
+
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $value) && is_numeric($value[$key])) {
+                    return (int) $value[$key];
+                }
+            }
+
+            if (array_is_list($value) && $value !== [] && is_numeric($value[0])) {
+                return (int) $value[0];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<int>  $hand
+     */
+    private static function integersToCardString(array $hand): string
+    {
+        return implode(' ', self::integersToCardStrings($hand));
+    }
+
+    private static function extensionAvailable(): bool
+    {
+        if (self::$extensionAvailable === null) {
+            self::$extensionAvailable = extension_loaded('phpoker') && function_exists('poker_evaluate_hand');
+        }
+
+        return self::$extensionAvailable;
     }
 }
