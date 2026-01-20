@@ -16,6 +16,9 @@ use PHPoker\Poker\Exceptions\InvalidNumberOfCardsInHand;
  * perfectHash lookup. To get around this, I had to use some extra bitwise operations to simulate the way
  * C overflows 32-bit unsigned integers within PHP.
  *
+ * I also added PHP support for 6 card evaluations (ex. turn card),
+ * Since there are only 5 permutations I did not bother adding to the extension, performance win is negligible
+ *
  * For more information on how this algorithm works under the hood, please visit:
  *
  * http://suffe.cool/poker/evaluator.html
@@ -34,11 +37,11 @@ class Evaluator
     {
         $count = count($hand);
 
-        if ($count !== 5 && $count !== 7) {
+        if ($count !== 5 && $count !== 6 && $count !== 7) {
             throw new InvalidNumberOfCardsInHand($hand);
         }
 
-        if (self::extensionAvailable()) {
+        if (($count === 5 || $count === 7) && self::extensionAvailable()) {
             $value = self::normalizeExtensionHandValue(
                 poker_evaluate_hand(self::integersToCardString($hand))
             );
@@ -48,9 +51,11 @@ class Evaluator
             }
         }
 
-        return HandRank::evaluate($count === 5
-            ? self::rankFiveCards(...$hand)
-            : self::rankSevenCards($hand));
+        return HandRank::evaluate(match ($count) {
+            5 => self::rankFiveCards(...$hand),
+            6 => self::rankSixCards($hand),
+            7 => self::rankSevenCards($hand),
+        });
     }
 
     /**
@@ -62,11 +67,11 @@ class Evaluator
     {
         $count = count($hand);
 
-        if ($count !== 5 && $count !== 7) {
+        if ($count !== 5 && $count !== 6 && $count !== 7) {
             throw new InvalidNumberOfCardsInHand($hand);
         }
 
-        if (self::extensionAvailable()) {
+        if (($count === 5 || $count === 7) && self::extensionAvailable()) {
             $value = self::normalizeExtensionHandValue(
                 poker_evaluate_hand(self::integersToCardString($hand))
             );
@@ -76,9 +81,13 @@ class Evaluator
             }
         }
 
-        return $count === 5
-            ? self::rankFiveCards(...$hand)
-            : self::rankSevenCards($hand);
+        // for 6-card hands, we just use the PHP implementation; there are only 5 permutations
+
+        return match ($count) {
+            5 => self::rankFiveCards(...$hand),
+            6 => self::rankSixCards($hand),
+            7 => self::rankSevenCards($hand),
+        };
     }
 
     public static function rankFiveCards(int $card1, int $card2, int $card3, int $card4, int $card5): int
@@ -108,25 +117,63 @@ class Evaluator
      *
      * @throws InvalidNumberOfCardsInHand
      */
-    public static function rankSevenCards(array $hand): int
+    public static function rankSixCards(array $hand): int
     {
-        $best = 9999;
+        if (count($hand) !== 6) {
+            throw new InvalidNumberOfCardsInHand($hand);
+        }
 
-        for ($i = 0; $i < 21; $i++) {
-            $subhand = [];
+        $bestRank = 9999;
 
-            for ($j = 0; $j < 5; $j++) {
-                $subhand[$j] = $hand[EvaluatorLookups::SEVEN_HAND_PERMUTATIONS[$i][$j]];
-            }
+        for ($comboIndex = 0; $comboIndex < 6; $comboIndex++) {
+            $fiveCardIndexes = EvaluatorLookups::SIX_HAND_PERMUTATIONS[$comboIndex];
 
-            $q = self::rankHand($subhand);
+            $handRank = self::rankFiveCards(
+                $hand[$fiveCardIndexes[0]],
+                $hand[$fiveCardIndexes[1]],
+                $hand[$fiveCardIndexes[2]],
+                $hand[$fiveCardIndexes[3]],
+                $hand[$fiveCardIndexes[4]],
+            );
 
-            if ($q < $best) {
-                $best = $q;
+            if ($handRank < $bestRank) {
+                $bestRank = $handRank;
             }
         }
 
-        return $best;
+        return $bestRank;
+    }
+
+    /**
+     * @param  array<int>  $hand
+     *
+     * @throws InvalidNumberOfCardsInHand
+     */
+    public static function rankSevenCards(array $hand): int
+    {
+        if (count($hand) !== 7) {
+            throw new InvalidNumberOfCardsInHand($hand);
+        }
+
+        $bestRank = 9999;
+
+        for ($comboIndex = 0; $comboIndex < 21; $comboIndex++) {
+            $fiveCardIndexes = EvaluatorLookups::SEVEN_HAND_PERMUTATIONS[$comboIndex];
+
+            $handRank = self::rankFiveCards(
+                $hand[$fiveCardIndexes[0]],
+                $hand[$fiveCardIndexes[1]],
+                $hand[$fiveCardIndexes[2]],
+                $hand[$fiveCardIndexes[3]],
+                $hand[$fiveCardIndexes[4]],
+            );
+
+            if ($handRank < $bestRank) {
+                $bestRank = $handRank;
+            }
+        }
+
+        return $bestRank;
     }
 
     protected static function perfectHash(int $u): int

@@ -1411,6 +1411,18 @@ final class EvaluatorLookups
     ];
 
     /**
+     * Contains all the possible 5 card permutations of 6 cards
+     */
+    final public const SIX_HAND_PERMUTATIONS = [
+        [0, 1, 2, 3, 4],
+        [0, 1, 2, 3, 5],
+        [0, 1, 2, 4, 5],
+        [0, 1, 3, 4, 5],
+        [0, 2, 3, 4, 5],
+        [1, 2, 3, 4, 5],
+    ];
+
+    /**
      * Contains all the possible 5 card permutations of 7 cards
      */
     final public const SEVEN_HAND_PERMUTATIONS = [
