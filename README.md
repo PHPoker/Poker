@@ -19,6 +19,13 @@ PHP's Premier Poker Solution
 composer require phpoker/poker
 ```
 
+### 🧩 Optional phpoker Extension
+
+For fast native hand evaluation (5/7 cards) and equity calculations, install the `phpoker` PHP extension.
+Installation steps vary by platform, so follow the instructions in the extension repository:
+
+https://github.com/PHPoker/Extension
+
 ### ✨ Features
 
 - Base classes for common card + poker related entities
@@ -26,8 +33,19 @@ composer require phpoker/poker
     - CardFace
     - CardSuit
     - CardCollection
+- Enums for game metadata, actions, and tournament settings
+    - HandRank
+    - GameType
+    - BetLimitType
+    - RaiseType
+    - TournamentType
+    - TournamentSpeedType
+    - TournamentProperties
+    - HandProperties
 - Evaluate
-    - Highly optimized 5-card/7-card hand evaluators (port of Kevin "CactusKev" Suffecool's algorithm)
+    - Highly optimized 5-card/6-card/7-card hand evaluators (port of Kevin "CactusKev" Suffecool's algorithm)
+- Equity
+    - Monte Carlo equity calculation via the phpoker extension
 
 ### Usage
 
@@ -152,6 +170,89 @@ $suit = CardSuit::fromText('SPADE'); // CardSuit::SPADE (case-insensitive)
 $randomSuit = CardSuit::random();
 ```
 
+#### Hand Rank
+
+```php
+use PHPoker\Poker\Enum\HandRank;
+
+HandRank::STRAIGHT_FLUSH->value; // 1
+HandRank::STRAIGHT_FLUSH();      // 1 (invokable)
+
+// Evaluate a rank value into its enum bucket
+HandRank::evaluate(10);   // HandRank::FOUR_OF_A_KIND
+HandRank::evaluate(322);  // HandRank::FLUSH
+
+// Utility methods (ArchTech enums)
+HandRank::names();   // ['STRAIGHT_FLUSH', 'FOUR_OF_A_KIND', ...]
+HandRank::values();  // [1, 2, 3, 4, 5, 6, 7, 8, 9]
+HandRank::options(); // ['STRAIGHT_FLUSH' => 1, ...]
+```
+
+#### Game Type
+
+```php
+use PHPoker\Poker\Enum\GameType;
+
+GameType::HOLDEM->value; // "Holdem"
+GameType::fromText('NLH'); // GameType::HOLDEM
+GameType::fromText('OmahaHiLo'); // GameType::OMAHA_HILO
+```
+
+#### Bet Limit Type
+
+```php
+use PHPoker\Poker\Enum\BetLimitType;
+
+BetLimitType::NO_LIMIT->value; // "NL"
+BetLimitType::fromText('pot limit'); // BetLimitType::POT_LIMIT
+```
+
+#### Raise Type
+
+```php
+use PHPoker\Poker\Enum\RaiseType;
+
+RaiseType::THREE_BET->value; // "3-Bet"
+RaiseType::fromText('3bet'); // RaiseType::THREE_BET
+RaiseType::fromText('c-bet'); // RaiseType::C_BET
+```
+
+#### Tournament Type
+
+```php
+use PHPoker\Poker\Enum\TournamentType;
+
+TournamentType::MULTI_TABLE_TOURNAMENT->value; // "MTT"
+TournamentType::SINGLE_TABLE_TOURNAMENT->value; // "STT"
+```
+
+#### Tournament Speed Type
+
+```php
+use PHPoker\Poker\Enum\TournamentSpeedType;
+
+TournamentSpeedType::TURBO->value; // "Turbo"
+TournamentSpeedType::HYPER_TURBO->value; // "Hyper-Turbo"
+```
+
+#### Tournament Properties
+
+```php
+use PHPoker\Poker\Enum\TournamentProperties;
+
+TournamentProperties::BOUNTY->value; // "Bounty"
+TournamentProperties::names(); // ['SNG', 'DON', 'BOUNTY', ...]
+```
+
+#### Hand Properties
+
+```php
+use PHPoker\Poker\Enum\HandProperties;
+
+HandProperties::RUN_IT_TWICE->value; // "Run_It_Twice"
+HandProperties::values(); // ['Run_It_Twice', 'Anonymous', ...]
+```
+
 ### Working with Card Collections
 
 Card collections allow you to work with groups of cards like hands and decks.
@@ -175,6 +276,12 @@ $hand = CardCollection::fromText('As Ah Kh Kd 2c');
 
 // Create a collection from array of text
 $hand = CardCollection::fromText(['As', 'Ah', 'Kh', 'Kd', '2c']);
+
+// Create a collection from integer card values
+$hand = CardCollection::fromIntegers([
+    Card::fromText('As')->toInteger(),
+    Card::fromText('Ah')->toInteger(),
+]);
 
 // Create a deck (all 52 cards, shuffled)
 $deck = CardCollection::createDeck();
@@ -209,7 +316,7 @@ $hasAceOfSpades = $hand->holding(Card::fromText('As')); // Check for specific ca
 
 ### Collection Hand Evaluation
 
-The library includes a powerful hand evaluation engine based on Kevin "CactusKev" Suffecool's algorithm with perfect-hash improvements by Paul Senzee. This provides fast and accurate poker hand evaluation.
+The library includes a powerful hand evaluation engine based on Kevin "CactusKev" Suffecool's algorithm with perfect-hash improvements by Paul Senzee. This provides fast and accurate 5-card, 6-card, and 7-card hand evaluation.
 
 #### Evaluating a Hand
 
@@ -223,16 +330,16 @@ $twoPair = CardCollection::fromText('Ah Ad Kh Ks Qc');
 $highCard = CardCollection::fromText('Ah Kd Qs Jc 9h');
 
 // Get the hand rank as an enum
-$handRank = $royalFlush->evaluate();
+$handRank = $royalFlush->evaluateHandRank();
 echo $handRank->name; // "STRAIGHT_FLUSH" (Royal Flush is a type of Straight Flush)
 
-$handRank = $fourOfAKind->evaluate();
+$handRank = $fourOfAKind->evaluateHandRank();
 echo $handRank->name; // "FOUR_OF_A_KIND"
 
-$handRank = $twoPair->evaluate();
+$handRank = $twoPair->evaluateHandRank();
 echo $handRank->name; // "TWO_PAIR"
 
-$handRank = $highCard->evaluate();
+$handRank = $highCard->evaluateHandRank();
 echo $handRank->name; // "HIGH_CARD"
 ```
 
@@ -242,12 +349,12 @@ echo $handRank->name; // "HIGH_CARD"
 $royalFlush = CardCollection::fromText('Ah Kh Qh Jh Th');
 $fourOfAKind = CardCollection::fromText('Ah Ad As Ac Kh');
 
-// Get numerical ranks for each hand
-$royalFlushRank = $royalFlush->rankHand();
-$fourOfAKindRank = $fourOfAKind->rankHand();
+// Get categorical ranks for each hand
+$royalFlushRank = $royalFlush->evaluateHandRank();
+$fourOfAKindRank = $fourOfAKind->evaluateHandRank();
 
 // Compare the ranks (lower is better)
-if ($royalFlushRank < $fourOfAKindRank) {
+if ($royalFlushRank->value < $fourOfAKindRank->value) {
     echo "Royal Flush wins!";
 } else {
     echo "Four of a Kind wins!";
@@ -258,7 +365,7 @@ if ($royalFlushRank < $fourOfAKindRank) {
 $fullHouse = CardCollection::fromText('Ah As Ad Kh Ks');
 $flush = CardCollection::fromText('Ah Jh 8h 6h 2h');
 
-if ($fullHouse->rankHand() < $flush->rankHand()) {
+if ($fullHouse->evaluateHandRank()->value < $flush->evaluateHandRank()->value) {
     echo "Full House wins!";
 } else {
     echo "Flush wins!";
@@ -282,6 +389,80 @@ $faceCounts = $hand->countFaces(); // Returns Collection with counts
 
 // Find the difference between two collections
 $remainingCards = $hand->diffCards($cardsToRemove);
+```
+
+### Evaluating Raw Hands
+
+If you already have integer card values, you can use the evaluator directly.
+
+```php
+use PHPoker\Poker\Card;
+use PHPoker\Poker\Evaluate\Evaluator;
+use PHPoker\Poker\Enum\HandRank;
+
+$hand = [
+    Card::fromText('Ah')->toInteger(),
+    Card::fromText('Kh')->toInteger(),
+    Card::fromText('Qh')->toInteger(),
+    Card::fromText('Jh')->toInteger(),
+    Card::fromText('Th')->toInteger(),
+];
+
+Evaluator::evaluateHand($hand); // HandRank::STRAIGHT_FLUSH
+
+$sixCardHand = [
+    Card::fromText('9h')->toInteger(),
+    Card::fromText('Ah')->toInteger(),
+    Card::fromText('Kh')->toInteger(),
+    Card::fromText('Qh')->toInteger(),
+    Card::fromText('Jh')->toInteger(),
+    Card::fromText('Th')->toInteger(),
+];
+
+Evaluator::evaluateHand($sixCardHand); // HandRank::STRAIGHT_FLUSH
+```
+
+### Equity Calculations (phpoker extension required)
+
+Equity calculations use the `phpoker` extension for Monte Carlo simulation.
+
+```php
+use PHPoker\Poker\Equity\Equity;
+
+// Preflop equity for AA vs KK
+$result = Equity::calculate(
+    hands: ['Ah Ad', 'Kh Kd'],
+    board: [],
+    iterations: 100000,
+    dead: ['2c', '7d']
+);
+
+$result->playerCount(); // 2
+$result->iterations; // 100000
+$result->board->toString(); // ""
+$result->deadCards->toString(); // "2c 7d"
+```
+
+#### Equity Result and Calculation Objects
+
+```php
+use PHPoker\Poker\Equity\Equity;
+
+$result = Equity::calculate(
+    hands: ['Ah Ad', 'Kh Kd'],
+    board: ['2c', '7d', 'Ts']
+);
+
+// Each entry is an EquityCalculation
+$calculation = $result->equities[0];
+$calculation->hand; // "Ah Ad"
+$calculation->equity; // float percentage
+$calculation->wins; // int
+$calculation->ties; // int
+$calculation->iterations; // int
+
+$calculation->toArray(); // ['hand' => 'Ah Ad', 'equity' => 81.2, ...]
+$calculation->jsonSerialize(); // Same as toArray()
 ```
 
 #### Collection Output
