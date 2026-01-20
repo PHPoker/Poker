@@ -58,39 +58,7 @@ class Evaluator
         });
     }
 
-    /**
-     * @param  array<int>  $hand
-     *
-     * @throws InvalidNumberOfCardsInHand
-     */
-    public static function rankHand(array $hand): int
-    {
-        $count = count($hand);
-
-        if ($count !== 5 && $count !== 6 && $count !== 7) {
-            throw new InvalidNumberOfCardsInHand($hand);
-        }
-
-        if (($count === 5 || $count === 7) && self::extensionAvailable()) {
-            $value = self::normalizeExtensionHandValue(
-                poker_evaluate_hand(self::integersToCardString($hand))
-            );
-
-            if ($value !== null) {
-                return $value;
-            }
-        }
-
-        // for 6-card hands, we just use the PHP implementation; there are only 5 permutations
-
-        return match ($count) {
-            5 => self::rankFiveCards(...$hand),
-            6 => self::rankSixCards($hand),
-            7 => self::rankSevenCards($hand),
-        };
-    }
-
-    public static function rankFiveCards(int $card1, int $card2, int $card3, int $card4, int $card5): int
+    private static function rankFiveCards(int $card1, int $card2, int $card3, int $card4, int $card5): int
     {
         $q = ($card1 | $card2 | $card3 | $card4 | $card5) >> 16;
 
@@ -117,7 +85,7 @@ class Evaluator
      *
      * @throws InvalidNumberOfCardsInHand
      */
-    public static function rankSixCards(array $hand): int
+    private static function rankSixCards(array $hand): int
     {
         if (count($hand) !== 6) {
             throw new InvalidNumberOfCardsInHand($hand);
@@ -149,7 +117,7 @@ class Evaluator
      *
      * @throws InvalidNumberOfCardsInHand
      */
-    public static function rankSevenCards(array $hand): int
+    private static function rankSevenCards(array $hand): int
     {
         if (count($hand) !== 7) {
             throw new InvalidNumberOfCardsInHand($hand);
@@ -176,7 +144,7 @@ class Evaluator
         return $bestRank;
     }
 
-    protected static function perfectHash(int $u): int
+    private static function perfectHash(int $u): int
     {
         $u += 0xE91AAA35;
         $u ^= ($u >> 16);

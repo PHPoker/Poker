@@ -58,11 +58,6 @@ final class CardCollection extends Collection
         return Evaluator::evaluateHand($this->toIntegers()->all());
     }
 
-    public function rankHand(): int
-    {
-        return Evaluator::rankHand($this->toIntegers()->all());
-    }
-
     /**
      * @throws \Exception
      */

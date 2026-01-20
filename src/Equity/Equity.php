@@ -9,7 +9,7 @@ use PHPoker\Poker\Collections\CardCollection;
 
 final class Equity
 {
-    private const DEFAULT_ITERATIONS = 10000;
+    private const DEFAULT_ITERATIONS = 100000;
 
     /**
      * @param  array<CardCollection|array<int|string|Card>|string>  $hands

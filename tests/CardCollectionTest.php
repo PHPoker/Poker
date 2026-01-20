@@ -466,22 +466,6 @@ test('CardCollection evaluateHandRank returns correct hand rank', function (
     expect($handRank)->toBe($expectedRank);
 })->with('hand_evaluations');
 
-// Test for rankHand method
-test('CardCollection rankHand returns integer value that preserves hand rank order', function (
-    CardCollection $betterHand,
-    CardCollection $worseHand,
-    bool $firstIsBetter
-) {
-    $betterRank = $betterHand->rankHand();
-    $worseRank = $worseHand->rankHand();
-
-    if ($firstIsBetter) {
-        expect($betterRank)->toBeLessThan($worseRank);
-    } else {
-        expect($betterRank)->toBeGreaterThan($worseRank);
-    }
-})->with('hand_rankings');
-
 // Test for fromIntegers method
 test('CardCollection fromIntegers correctly converts integer values to cards', function (
     array $integers,
